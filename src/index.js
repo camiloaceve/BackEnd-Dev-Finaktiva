@@ -20,3 +20,5 @@ app.set("port", process.env.PORT || 4000)
 app.listen(app.get("port"), () => {
 	console.log("servidor en puerto http://localhost:" + app.get("port"))
 })
+
+module.exports = app
