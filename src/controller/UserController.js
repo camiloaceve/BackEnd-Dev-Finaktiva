@@ -1,6 +1,8 @@
 const models = require("../models")
 // para encriptar contrseñas
 const bcrypt = require("bcrypt")
+// llamado de token
+const token = require("../services/token")
 
 // crear usuario
 async function addUser(req, res, next) {
@@ -71,9 +73,39 @@ async function deleteUser(req, res, next) {
 		.catch((error) => console.error(error))
 }
 
+// Inicio de session
+async function login(req, res, next) {
+	try {
+		const user = await models.Usuario.findOne({
+			email: req.body.email,
+		})
+		if (user) {
+			const match = await bcrypt.compare(req.body.password, user.password)
+			if (match) {
+				const tokenReturn = await token.encode(user._id, user.rol, user.email)
+				res.status(200).json({ user, tokenReturn })
+			} else {
+				res.status(404).send({
+					message: "Contraseña o email invalido, intente de nuevo",
+				})
+			}
+		} else {
+			res.status(404).send({
+				message: "No existe usuario, intente de nuevo",
+			})
+		}
+	} catch (error) {
+		res.status(500).send({
+			message: "Ocurrio un error",
+		})
+		next(error)
+	}
+}
+
 module.exports = {
 	addUser,
 	listUsers,
 	updateUser,
 	deleteUser,
+	login,
 }
